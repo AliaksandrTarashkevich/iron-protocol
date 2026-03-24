@@ -6,12 +6,14 @@ export default function Card({ children, style }) {
     <div
       style={{
         background: t.surface,
-        border: `1px solid ${t.border}`,
-        borderRadius: 14,
+        border: t.cardBorder,
+        borderRadius: t.cardRadius,
         padding: 16,
         boxShadow: t.shadow,
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
+        ...(t.cardBlur > 0 && {
+          backdropFilter: `blur(${t.cardBlur}px)`,
+          WebkitBackdropFilter: `blur(${t.cardBlur}px)`,
+        }),
         ...style,
       }}
     >

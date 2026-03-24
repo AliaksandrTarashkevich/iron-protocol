@@ -12,8 +12,12 @@ export default function ExerciseRow({ exercise, done, onToggle, open, onOpen }) 
       layout
       style={{
         background: done ? t.greenSoft : t.surface,
-        border: `1px solid ${done ? `${t.green}33` : t.border}`,
-        borderRadius: 10,
+        border: done ? `1px solid ${t.green}33` : (t.cardBorder || `1px solid ${t.border}`),
+        borderRadius: t.exerciseRadius || 10,
+        ...(t.cardBlur > 0 && {
+          backdropFilter: `blur(${t.cardBlur}px)`,
+          WebkitBackdropFilter: `blur(${t.cardBlur}px)`,
+        }),
         overflow: "hidden",
         opacity: done ? 0.6 : 1,
       }}

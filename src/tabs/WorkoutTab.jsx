@@ -167,10 +167,10 @@ export default function WorkoutTab({ week, currentWeek, dayIndex, todayDone, com
             style={{
               width: "100%",
               padding: 16,
-              borderRadius: 12,
+              borderRadius: t.buttonRadius || 12,
               border: "none",
               marginTop: 8,
-              background: `linear-gradient(135deg, ${t.green}, #16a34a)`,
+              background: t.accentGradient ? t.accentGradient.replace(t.accent, t.green) : `linear-gradient(135deg, ${t.green}, #16a34a)`,
               color: "#fff",
               fontSize: 15,
               fontWeight: 700,

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { THEME } from "./styles/theme";
+import { THEME, STYLE_META } from "./styles/theme";
 import { PLAN } from "./data/plan";
 import { ThemeContext } from "./context/ThemeContext";
 import { useLocalStorage, useLocalStorageString } from "./hooks/useLocalStorage";
@@ -18,9 +18,20 @@ import ProgressTab from "./tabs/ProgressTab";
 const TAB_ORDER = ["workout", "program", "calendar", "weight"];
 
 export default function App() {
-  // Theme
-  const [mode, setMode] = useLocalStorageString("wt_th", "dark");
-  const theme = THEME[mode];
+  // Theme: style (minimal|glass|premium) + dark/light
+  const [currentStyle, setCurrentStyle] = useLocalStorageString("wt_style", "glass");
+  const [isDark, setIsDark] = useLocalStorage("wt_dark", true);
+
+  // Resolve theme key
+  const meta = STYLE_META[currentStyle] || STYLE_META.glass;
+  const themeKey = isDark ? meta.darkKey : meta.lightKey;
+  const theme = THEME[themeKey] || THEME["glass-dark"];
+
+  const handleChangeStyle = (style) => {
+    setCurrentStyle(style);
+    if (style === "premium") setIsDark(true);
+  };
+  const handleToggleDarkLight = () => setIsDark(!isDark);
 
   // Navigation
   const [activeTab, setActiveTab] = useState("workout");
@@ -119,8 +130,6 @@ export default function App() {
     [today],
   );
 
-  const handleToggleMode = () => setMode(mode === "dark" ? "light" : "dark");
-
   const tabVariants = {
     enter: (dir) => ({ x: dir > 0 ? 80 : -80, opacity: 0 }),
     center: { x: 0, opacity: 1 },
@@ -132,7 +141,7 @@ export default function App() {
       <div
         style={{
           minHeight: "100vh",
-          background: theme.bg,
+          background: theme.bgGradient || theme.bg,
           color: theme.text,
           fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           maxWidth: 480,
@@ -152,8 +161,10 @@ export default function App() {
         <AnimatePresence>
           {showSettings && (
             <SettingsModal
-              mode={mode}
-              onToggleMode={handleToggleMode}
+              currentStyle={currentStyle}
+              isDark={isDark}
+              onChangeStyle={handleChangeStyle}
+              onToggleDarkLight={handleToggleDarkLight}
               onClose={() => setShowSettings(false)}
             />
           )}
