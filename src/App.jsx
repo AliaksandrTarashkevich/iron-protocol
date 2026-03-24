@@ -8,6 +8,7 @@ import WeekProgress from "./components/WeekProgress";
 import TabBar from "./components/TabBar";
 import Celebration from "./components/Celebration";
 import SettingsModal from "./components/SettingsModal";
+import EndorphinCheckIn from "./components/EndorphinCheckIn";
 import WorkoutTab from "./tabs/WorkoutTab";
 import ProgramTab from "./tabs/ProgramTab";
 import CalendarTab from "./tabs/CalendarTab";
@@ -25,11 +26,14 @@ export default function App() {
   const [currentWeek, setCurrentWeek] = useLocalStorage("wt_w", 0);
   const [completedWorkouts, setCompletedWorkouts] = useLocalStorage("wt_d", {});
   const [weightLog, setWeightLog] = useLocalStorage("wt_wl", []);
+  const [endorphinLog, setEndorphinLog] = useLocalStorage("wt_el", []);
 
   // UI state
   const [viewingWeek, setViewingWeek] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showEndorphinCheckIn, setShowEndorphinCheckIn] = useState(false);
+  const [pendingWorkoutKey, setPendingWorkoutKey] = useState(null);
 
   // Derived values
   const week = PLAN[currentWeek];
@@ -53,12 +57,34 @@ export default function App() {
         exercises: workout.exercises.map((e) => ({ id: e.id, reps: e.reps })),
       },
     }));
+    setPendingWorkoutKey(todayKey);
+    setShowEndorphinCheckIn(true);
+  }, [currentWeek, dayIndex, today, todayKey, week]);
+
+  const handleEndorphinSubmit = useCallback(
+    ({ mood, energy }) => {
+      setEndorphinLog((prev) => [
+        ...prev.filter((e) => e.date !== today),
+        { date: today, mood, energy, workoutKey: pendingWorkoutKey },
+      ]);
+      setShowEndorphinCheckIn(false);
+      setShowCelebration(true);
+      setTimeout(() => {
+        setShowCelebration(false);
+        setActiveTab("calendar");
+      }, 2500);
+    },
+    [today, pendingWorkoutKey],
+  );
+
+  const handleEndorphinSkip = useCallback(() => {
+    setShowEndorphinCheckIn(false);
     setShowCelebration(true);
     setTimeout(() => {
       setShowCelebration(false);
       setActiveTab("calendar");
     }, 2500);
-  }, [currentWeek, dayIndex, today, todayKey, week]);
+  }, []);
 
   const handleAddWeight = useCallback(
     (weight) => {
@@ -88,6 +114,9 @@ export default function App() {
           overflow: "hidden",
         }}
       >
+        {showEndorphinCheckIn && (
+          <EndorphinCheckIn onSubmit={handleEndorphinSubmit} onSkip={handleEndorphinSkip} />
+        )}
         {showCelebration && <Celebration />}
         {showSettings && (
           <SettingsModal
@@ -136,6 +165,7 @@ export default function App() {
               weightLog={weightLog}
               onAddWeight={handleAddWeight}
               completedWorkouts={completedWorkouts}
+              endorphinLog={endorphinLog}
             />
           )}
         </div>

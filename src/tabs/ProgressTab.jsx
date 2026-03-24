@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, BarChart3, Heart } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { PLAN } from "../data/plan";
 import { KEY_EXERCISES } from "../data/exercises";
 import Card from "../components/Card";
 
-export default function ProgressTab({ weightLog, onAddWeight, completedWorkouts }) {
+export default function ProgressTab({ weightLog, onAddWeight, completedWorkouts, endorphinLog = [] }) {
   const t = useTheme();
   const [weightInput, setWeightInput] = useState("");
   const [weightSaved, setWeightSaved] = useState(false);
@@ -122,6 +122,9 @@ export default function ProgressTab({ weightLog, onAddWeight, completedWorkouts 
             ))}
         </div>
       )}
+
+      {/* Endorphin Graph */}
+      {endorphinLog.length > 0 && <EndorphinGraph data={endorphinLog} theme={t} />}
 
       {/* Strength Progress */}
       <StrengthProgress completedWorkouts={completedWorkouts} theme={t} />
@@ -328,6 +331,74 @@ function StrengthProgress({ completedWorkouts, theme: t }) {
           </div>
         );
       })}
+    </Card>
+  );
+}
+
+function EndorphinGraph({ data, theme: t }) {
+  const sorted = [...data].sort((a, b) => a.date.localeCompare(b.date)).slice(-14);
+  const avgMood = (sorted.reduce((s, e) => s + e.mood, 0) / sorted.length).toFixed(1);
+  const avgEnergy = (sorted.reduce((s, e) => s + e.energy, 0) / sorted.length).toFixed(1);
+
+  const W = 320, H = 80, PX = 16, PY = 12;
+
+  const moodPoints = sorted.map((e, i) => ({
+    x: PX + (sorted.length > 1 ? (i / (sorted.length - 1)) * (W - PX * 2) : (W - PX * 2) / 2),
+    y: PY + (1 - (e.mood - 1) / 4) * (H - PY * 2),
+  }));
+  const energyPoints = sorted.map((e, i) => ({
+    x: PX + (sorted.length > 1 ? (i / (sorted.length - 1)) * (W - PX * 2) : (W - PX * 2) / 2),
+    y: PY + (1 - (e.energy - 1) / 4) * (H - PY * 2),
+  }));
+
+  const moodLine = moodPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+  const energyLine = energyPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+
+  return (
+    <Card style={{ marginTop: 12 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
+        <Heart size={16} /> Эндорфин
+      </div>
+      <div style={{ display: "flex", gap: 16, marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: t.textMuted }}>
+          Настроение: <span style={{ color: t.accent, fontWeight: 700 }}>{avgMood}/5</span>
+        </div>
+        <div style={{ fontSize: 11, color: t.textMuted }}>
+          Энергия: <span style={{ color: t.green, fontWeight: 700 }}>{avgEnergy}/5</span>
+        </div>
+      </div>
+      {sorted.length >= 2 ? (
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto" }}>
+          {/* Grid lines */}
+          {[1, 2, 3, 4, 5].map((v) => {
+            const y = PY + (1 - (v - 1) / 4) * (H - PY * 2);
+            return (
+              <line key={v} x1={PX} y1={y} x2={W - PX} y2={y} stroke={t.border} strokeWidth="0.3" />
+            );
+          })}
+          {/* Energy line */}
+          <path d={energyLine} fill="none" stroke={t.green} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
+          {/* Mood line */}
+          <path d={moodLine} fill="none" stroke={t.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          {/* Mood dots */}
+          {moodPoints.map((p, i) => (
+            <circle key={i} cx={p.x} cy={p.y} r={i === moodPoints.length - 1 ? 3.5 : 2} fill={t.accent} />
+          ))}
+        </svg>
+      ) : (
+        <div style={{ textAlign: "center", fontSize: 11, color: t.textMuted, padding: 8 }}>
+          После 2+ записей появится график
+        </div>
+      )}
+      {/* Legend */}
+      <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 4 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: t.textMuted }}>
+          <div style={{ width: 10, height: 2, borderRadius: 1, background: t.accent }} /> Настроение
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: t.textMuted }}>
+          <div style={{ width: 10, height: 2, borderRadius: 1, background: t.green, opacity: 0.6 }} /> Энергия
+        </div>
+      </div>
     </Card>
   );
 }
