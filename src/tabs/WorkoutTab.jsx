@@ -31,14 +31,38 @@ export default function WorkoutTab({ week, currentWeek, dayIndex, todayDone, com
 
   return (
     <div>
-      <Card style={{ marginBottom: 12, background: `${PHASE_COLORS[week.phase]}10`, borderColor: `${PHASE_COLORS[week.phase]}33` }}>
-        <div style={{ fontSize: 11, color: t.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+      <Card
+        style={{
+          marginBottom: 14,
+          background: `linear-gradient(135deg, ${PHASE_COLORS[week.phase]}12, ${t.accent}08)`,
+          border: `1px solid ${PHASE_COLORS[week.phase]}25`,
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Subtle gradient accent bar */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 3,
+            background: `linear-gradient(90deg, ${PHASE_COLORS[week.phase]}, ${t.accent})`,
+            borderRadius: "14px 14px 0 0",
+          }}
+        />
+        <div style={{ fontSize: 11, color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6, marginTop: 2, fontWeight: 500 }}>
           Сегодня · Тренировка {dayIndex + 1}/3
         </div>
-        <div style={{ fontSize: 16, fontWeight: 700 }}>{workout.name}</div>
-        {todayDone && <Badge color={t.green}><Check size={12} style={{ marginRight: 4 }} /> Выполнено</Badge>}
+        <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.02em" }}>{workout.name}</div>
+        {todayDone && (
+          <div style={{ marginTop: 8 }}>
+            <Badge color={t.green}><Check size={12} style={{ marginRight: 4 }} /> Выполнено</Badge>
+          </div>
+        )}
         {completedCount >= 3 && !todayDone && (
-          <div style={{ fontSize: 12, color: t.accent, marginTop: 6 }}>
+          <div style={{ fontSize: 12, color: t.accent, marginTop: 8, fontWeight: 500 }}>
             Все 3 тренировки готовы — переключай неделю в «План»
           </div>
         )}
