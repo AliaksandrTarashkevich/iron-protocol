@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { TrendingUp, TrendingDown, BarChart3, Heart } from "lucide-react";
+import { TrendingUp, TrendingDown, BarChart3, Heart, Plus } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { PLAN } from "../data/plan";
 import { KEY_EXERCISES } from "../data/exercises";
 import Card from "../components/Card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function ProgressTab({ weightLog, onAddWeight, completedWorkouts, endorphinLog = [] }) {
   const t = useTheme();
@@ -35,41 +37,22 @@ export default function ProgressTab({ weightLog, onAddWeight, completedWorkouts,
         <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 8 }}>
           Одна запись в день — повторный ввод обновит значение
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <input
+        <div className="flex gap-2">
+          <Input
             type="number"
             placeholder="кг"
             value={weightInput}
             onChange={(e) => setWeightInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddWeight()}
-            style={{
-              flex: 1,
-              background: t.surface2,
-              border: `1px solid ${t.border}`,
-              borderRadius: 8,
-              padding: "10px 12px",
-              color: t.text,
-              fontSize: 16,
-              fontWeight: 600,
-              outline: "none",
-              fontFamily: "inherit",
-            }}
+            className="flex-1 text-lg font-semibold h-12 rounded-xl"
           />
-          <button
+          <Button
             onClick={handleAddWeight}
-            style={{
-              background: t.accent,
-              color: "#fff",
-              border: "none",
-              borderRadius: 8,
-              padding: "10px 18px",
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
+            className="h-12 w-12 rounded-xl p-0"
+            style={{ background: t.accent, color: t.isDark ? "#111" : "#fff" }}
           >
-            +
-          </button>
+            <Plus size={20} />
+          </Button>
         </div>
         {weightSaved && (
           <div

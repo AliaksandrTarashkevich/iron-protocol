@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Check, ChevronDown, ChevronRight, Trophy, Clock } from "lucide-react";
+import { Check, ChevronDown, Trophy, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import { PHASE_COLORS } from "../styles/theme";
+import { Button } from "@/components/ui/button";
 import Card from "../components/Card";
 import Badge from "../components/Badge";
 import ExerciseRow from "../components/ExerciseRow";
