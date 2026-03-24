@@ -50,6 +50,7 @@ export default function SettingsModal({ mode, onToggleMode, onClose }) {
           borderRadius: "20px 20px 0 0",
           padding: "20px 16px env(safe-area-inset-bottom, 16px)",
           zIndex: 301,
+          animation: "slideUp 0.25s ease-out",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>

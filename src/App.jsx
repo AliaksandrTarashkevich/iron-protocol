@@ -135,7 +135,7 @@ export default function App() {
 
         <WeekProgress currentWeek={currentWeek} viewingWeek={viewingWeek} activeTab={activeTab} />
 
-        <div style={{ padding: "4px 16px 0" }}>
+        <div key={activeTab} className="tab-content" style={{ padding: "4px 16px 0" }}>
           {activeTab === "workout" && (
             <WorkoutTab
               week={week}
