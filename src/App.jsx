@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { THEME } from "./styles/theme";
 import { PLAN } from "./data/plan";
 import { ThemeContext } from "./context/ThemeContext";
@@ -14,6 +15,8 @@ import ProgramTab from "./tabs/ProgramTab";
 import CalendarTab from "./tabs/CalendarTab";
 import ProgressTab from "./tabs/ProgressTab";
 
+const TAB_ORDER = ["workout", "program", "calendar", "weight"];
+
 export default function App() {
   // Theme
   const [mode, setMode] = useLocalStorageString("wt_th", "dark");
@@ -21,6 +24,25 @@ export default function App() {
 
   // Navigation
   const [activeTab, setActiveTab] = useState("workout");
+  const prevTabRef = useRef(0);
+  const tabIndex = TAB_ORDER.indexOf(activeTab);
+
+  const handleTabChange = useCallback((tab) => {
+    prevTabRef.current = TAB_ORDER.indexOf(activeTab);
+    setActiveTab(tab);
+  }, [activeTab]);
+
+  // Swipe direction: 1 = right (next), -1 = left (prev)
+  const direction = tabIndex > prevTabRef.current ? 1 : -1;
+
+  const handleSwipe = useCallback((_, info) => {
+    const threshold = 50;
+    if (info.offset.x < -threshold && tabIndex < TAB_ORDER.length - 1) {
+      handleTabChange(TAB_ORDER[tabIndex + 1]);
+    } else if (info.offset.x > threshold && tabIndex > 0) {
+      handleTabChange(TAB_ORDER[tabIndex - 1]);
+    }
+  }, [tabIndex, handleTabChange]);
 
   // Core state (persisted)
   const [currentWeek, setCurrentWeek] = useLocalStorage("wt_w", 0);
@@ -71,10 +93,10 @@ export default function App() {
       setShowCelebration(true);
       setTimeout(() => {
         setShowCelebration(false);
-        setActiveTab("calendar");
+        handleTabChange("calendar");
       }, 2500);
     },
-    [today, pendingWorkoutKey],
+    [today, pendingWorkoutKey, handleTabChange],
   );
 
   const handleEndorphinSkip = useCallback(() => {
@@ -82,9 +104,9 @@ export default function App() {
     setShowCelebration(true);
     setTimeout(() => {
       setShowCelebration(false);
-      setActiveTab("calendar");
+      handleTabChange("calendar");
     }, 2500);
-  }, []);
+  }, [handleTabChange]);
 
   const handleAddWeight = useCallback(
     (weight) => {
@@ -98,6 +120,12 @@ export default function App() {
   );
 
   const handleToggleMode = () => setMode(mode === "dark" ? "light" : "dark");
+
+  const tabVariants = {
+    enter: (dir) => ({ x: dir > 0 ? 80 : -80, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir) => ({ x: dir > 0 ? -80 : 80, opacity: 0 }),
+  };
 
   return (
     <ThemeContext.Provider value={theme}>
@@ -115,17 +143,21 @@ export default function App() {
           overflow: "hidden",
         }}
       >
-        {showEndorphinCheckIn && (
-          <EndorphinCheckIn onSubmit={handleEndorphinSubmit} onSkip={handleEndorphinSkip} />
-        )}
+        <AnimatePresence>
+          {showEndorphinCheckIn && (
+            <EndorphinCheckIn onSubmit={handleEndorphinSubmit} onSkip={handleEndorphinSkip} />
+          )}
+        </AnimatePresence>
         {showCelebration && <Celebration />}
-        {showSettings && (
-          <SettingsModal
-            mode={mode}
-            onToggleMode={handleToggleMode}
-            onClose={() => setShowSettings(false)}
-          />
-        )}
+        <AnimatePresence>
+          {showSettings && (
+            <SettingsModal
+              mode={mode}
+              onToggleMode={handleToggleMode}
+              onClose={() => setShowSettings(false)}
+            />
+          )}
+        </AnimatePresence>
 
         <Header
           onOpenSettings={() => setShowSettings(true)}
@@ -136,42 +168,58 @@ export default function App() {
 
         <WeekProgress currentWeek={currentWeek} viewingWeek={viewingWeek} activeTab={activeTab} />
 
-        <div key={activeTab} className="tab-content" style={{ padding: "4px 16px 0" }}>
-          {activeTab === "workout" && (
-            <WorkoutTab
-              week={week}
-              currentWeek={currentWeek}
-              dayIndex={dayIndex}
-              todayDone={todayDone}
-              completedCount={completedCount}
-              onMarkComplete={handleMarkComplete}
-            />
-          )}
+        <div style={{ padding: "4px 16px 0", overflow: "hidden" }}>
+          <AnimatePresence initial={false} mode="wait" custom={direction}>
+            <motion.div
+              key={activeTab}
+              custom={direction}
+              variants={tabVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.15}
+              onDragEnd={handleSwipe}
+            >
+              {activeTab === "workout" && (
+                <WorkoutTab
+                  week={week}
+                  currentWeek={currentWeek}
+                  dayIndex={dayIndex}
+                  todayDone={todayDone}
+                  completedCount={completedCount}
+                  onMarkComplete={handleMarkComplete}
+                />
+              )}
 
-          {activeTab === "program" && (
-            <ProgramTab
-              currentWeek={currentWeek}
-              viewingWeek={viewingWeek}
-              onViewWeek={setViewingWeek}
-              onSwitchWeek={setCurrentWeek}
-            />
-          )}
+              {activeTab === "program" && (
+                <ProgramTab
+                  currentWeek={currentWeek}
+                  viewingWeek={viewingWeek}
+                  onViewWeek={setViewingWeek}
+                  onSwitchWeek={setCurrentWeek}
+                />
+              )}
 
-          {activeTab === "calendar" && (
-            <CalendarTab completedWorkouts={completedWorkouts} currentWeek={currentWeek} />
-          )}
+              {activeTab === "calendar" && (
+                <CalendarTab completedWorkouts={completedWorkouts} currentWeek={currentWeek} />
+              )}
 
-          {activeTab === "weight" && (
-            <ProgressTab
-              weightLog={weightLog}
-              onAddWeight={handleAddWeight}
-              completedWorkouts={completedWorkouts}
-              endorphinLog={endorphinLog}
-            />
-          )}
+              {activeTab === "weight" && (
+                <ProgressTab
+                  weightLog={weightLog}
+                  onAddWeight={handleAddWeight}
+                  completedWorkouts={completedWorkouts}
+                  endorphinLog={endorphinLog}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
-        <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+        <TabBar activeTab={activeTab} onTabChange={handleTabChange} />
       </div>
     </ThemeContext.Provider>
   );

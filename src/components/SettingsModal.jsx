@@ -1,25 +1,9 @@
-import { useState, useRef } from "react";
-import { X, Sun, Moon, Download, Upload, AlertCircle } from "lucide-react";
+import { X, Sun, Moon } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
-import { exportData, importData } from "../hooks/useDataBackup";
 
 export default function SettingsModal({ mode, onToggleMode, onClose }) {
   const t = useTheme();
-  const [importStatus, setImportStatus] = useState(null);
-  const fileRef = useRef(null);
-
-  const handleImport = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      await importData(file);
-      setImportStatus("success");
-      setTimeout(() => window.location.reload(), 1500);
-    } catch {
-      setImportStatus("error");
-      setTimeout(() => setImportStatus(null), 3000);
-    }
-  };
 
   return (
     <div
@@ -32,7 +16,10 @@ export default function SettingsModal({ mode, onToggleMode, onClose }) {
         justifyContent: "center",
       }}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         style={{
           position: "absolute",
           inset: 0,
@@ -41,7 +28,17 @@ export default function SettingsModal({ mode, onToggleMode, onClose }) {
         }}
         onClick={onClose}
       />
-      <div
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 30, stiffness: 300 }}
+        drag="y"
+        dragConstraints={{ top: 0 }}
+        dragElastic={0.2}
+        onDragEnd={(_, info) => {
+          if (info.offset.y > 100) onClose();
+        }}
         style={{
           position: "relative",
           width: "100%",
@@ -50,12 +47,17 @@ export default function SettingsModal({ mode, onToggleMode, onClose }) {
           borderRadius: "20px 20px 0 0",
           padding: "20px 16px env(safe-area-inset-bottom, 16px)",
           zIndex: 301,
-          animation: "slideUp 0.25s ease-out",
         }}
       >
+        {/* Drag handle */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: t.surface3 }} />
+        </div>
+
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Настройки</h2>
-          <button
+          <motion.button
+            whileTap={{ scale: 0.9 }}
             onClick={onClose}
             style={{
               background: t.surface2,
@@ -71,7 +73,7 @@ export default function SettingsModal({ mode, onToggleMode, onClose }) {
             }}
           >
             <X size={16} />
-          </button>
+          </motion.button>
         </div>
 
         {/* Theme Toggle */}
@@ -81,14 +83,15 @@ export default function SettingsModal({ mode, onToggleMode, onClose }) {
             justifyContent: "space-between",
             alignItems: "center",
             padding: "12px 0",
-            borderBottom: `1px solid ${t.border}`,
           }}
         >
           <div>
             <div style={{ fontSize: 14, fontWeight: 600 }}>Тема</div>
             <div style={{ fontSize: 12, color: t.textMuted }}>{mode === "dark" ? "Тёмная" : "Светлая"}</div>
           </div>
-          <button
+          <motion.button
+            whileTap={{ scale: 0.9, rotate: 180 }}
+            transition={{ type: "spring", stiffness: 300 }}
             onClick={onToggleMode}
             style={{
               background: t.surface2,
@@ -104,84 +107,9 @@ export default function SettingsModal({ mode, onToggleMode, onClose }) {
             }}
           >
             {mode === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+          </motion.button>
         </div>
-
-        {/* Export */}
-        <div style={{ padding: "16px 0 8px" }}>
-          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Данные</div>
-          <div style={{ fontSize: 12, color: t.textMuted, marginBottom: 12 }}>
-            Экспорт сохранит все тренировки, вес и настроения в файл
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              onClick={exportData}
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                padding: 12,
-                borderRadius: 10,
-                border: "none",
-                background: t.accent,
-                color: "#fff",
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              <Download size={16} /> Экспорт
-            </button>
-            <button
-              onClick={() => fileRef.current?.click()}
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                padding: 12,
-                borderRadius: 10,
-                border: `1px solid ${t.border}`,
-                background: t.surface2,
-                color: t.text,
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              <Upload size={16} /> Импорт
-            </button>
-            <input ref={fileRef} type="file" accept=".json" onChange={handleImport} style={{ display: "none" }} />
-          </div>
-          {importStatus === "success" && (
-            <div style={{ marginTop: 8, fontSize: 12, color: t.green, fontWeight: 600, textAlign: "center" }}>
-              Данные восстановлены! Перезагрузка...
-            </div>
-          )}
-          {importStatus === "error" && (
-            <div
-              style={{
-                marginTop: 8,
-                fontSize: 12,
-                color: t.red,
-                fontWeight: 600,
-                textAlign: "center",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 4,
-              }}
-            >
-              <AlertCircle size={14} /> Ошибка: неверный файл
-            </div>
-          )}
-        </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

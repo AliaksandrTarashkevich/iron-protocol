@@ -1,7 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Dumbbell } from "lucide-react";
+import { motion } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import Card from "../components/Card";
+
+function CountUp({ value, color }) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    if (value === 0) { setDisplay(0); return; }
+    let frame = 0;
+    const steps = Math.min(value, 20);
+    const interval = setInterval(() => {
+      frame++;
+      setDisplay(Math.round((frame / steps) * value));
+      if (frame >= steps) clearInterval(interval);
+    }, 40);
+    return () => clearInterval(interval);
+  }, [value]);
+  return <span style={{ fontSize: 28, fontWeight: 800, color }}>{display}</span>;
+}
 
 const MONTH_NAMES = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 const DAY_NAMES = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
@@ -81,14 +98,18 @@ export default function CalendarTab({ completedWorkouts, currentWeek }) {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 16 }}>
-        <Card style={{ textAlign: "center", padding: 12 }}>
-          <div style={{ fontSize: 28, fontWeight: 800, color: t.green }}>{Object.keys(completedWorkouts).length}</div>
-          <div style={{ fontSize: 11, color: t.textMuted }}>Тренировок</div>
-        </Card>
-        <Card style={{ textAlign: "center", padding: 12 }}>
-          <div style={{ fontSize: 28, fontWeight: 800, color: t.accent }}>{currentWeek + 1}</div>
-          <div style={{ fontSize: 11, color: t.textMuted }}>Неделя</div>
-        </Card>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <Card style={{ textAlign: "center", padding: 12 }}>
+            <CountUp value={Object.keys(completedWorkouts).length} color={t.green} />
+            <div style={{ fontSize: 11, color: t.textMuted }}>Тренировок</div>
+          </Card>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <Card style={{ textAlign: "center", padding: 12 }}>
+            <CountUp value={currentWeek + 1} color={t.accent} />
+            <div style={{ fontSize: 11, color: t.textMuted }}>Неделя</div>
+          </Card>
+        </motion.div>
       </div>
 
       {Object.keys(completedWorkouts).length > 0 && (

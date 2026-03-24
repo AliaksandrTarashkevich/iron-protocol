@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check, ChevronDown, ChevronRight, Trophy, Clock } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import { PHASE_COLORS } from "../styles/theme";
 import Card from "../components/Card";
@@ -46,7 +47,8 @@ export default function WorkoutTab({ week, currentWeek, dayIndex, todayDone, com
       {!todayDone &&
         Array.from({ length: week.rounds }, (_, roundIndex) => (
           <div key={roundIndex} style={{ marginBottom: 12 }}>
-            <button
+            <motion.button
+              whileTap={{ scale: 0.97 }}
               onClick={() => setActiveRound(activeRound === roundIndex ? -1 : roundIndex)}
               style={{
                 display: "flex",
@@ -60,7 +62,12 @@ export default function WorkoutTab({ week, currentWeek, dayIndex, todayDone, com
                 color: t.text,
               }}
             >
-              <div
+              <motion.div
+                animate={{
+                  background: isRoundDone(roundIndex) ? t.green : roundIndex === activeRound ? t.accent : t.surface3,
+                  scale: isRoundDone(roundIndex) ? [1, 1.2, 1] : 1,
+                }}
+                transition={{ type: "spring", stiffness: 300 }}
                 style={{
                   width: 26,
                   height: 26,
@@ -70,47 +77,62 @@ export default function WorkoutTab({ week, currentWeek, dayIndex, todayDone, com
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  background: isRoundDone(roundIndex) ? t.green : roundIndex === activeRound ? t.accent : t.surface3,
                   color: "#fff",
                 }}
               >
                 {isRoundDone(roundIndex) ? <Check size={14} /> : roundIndex + 1}
-              </div>
+              </motion.div>
               <span style={{ fontSize: 14, fontWeight: 600 }}>Круг {roundIndex + 1}</span>
-              {activeRound === roundIndex ? (
+              <motion.div animate={{ rotate: activeRound === roundIndex ? 0 : -90 }} transition={{ duration: 0.2 }}>
                 <ChevronDown size={16} color={t.textMuted} />
-              ) : (
-                <ChevronRight size={16} color={t.textMuted} />
+              </motion.div>
+            </motion.button>
+
+            <AnimatePresence>
+              {activeRound === roundIndex && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  style={{ overflow: "hidden" }}
+                >
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+                    {workout.exercises.map((ex, ei) => (
+                      <motion.div
+                        key={ei}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: ei * 0.04, duration: 0.2 }}
+                      >
+                        <ExerciseRow
+                          exercise={ex}
+                          done={isChecked(roundIndex, ei)}
+                          onToggle={() => toggleCheck(roundIndex, ei)}
+                          open={expandedExercise === `${roundIndex}_${ei}`}
+                          onOpen={() =>
+                            setExpandedExercise(expandedExercise === `${roundIndex}_${ei}` ? null : `${roundIndex}_${ei}`)
+                          }
+                        />
+                      </motion.div>
+                    ))}
+                    {isRoundDone(roundIndex) && roundIndex < week.rounds - 1 && (
+                      <RestTimer
+                        seconds={week.restRound}
+                        label={`Отдых → круг ${roundIndex + 2}`}
+                        onDone={() => setActiveRound(roundIndex + 1)}
+                      />
+                    )}
+                  </div>
+                </motion.div>
               )}
-            </button>
-            {activeRound === roundIndex && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
-                {workout.exercises.map((ex, ei) => (
-                  <ExerciseRow
-                    key={ei}
-                    exercise={ex}
-                    done={isChecked(roundIndex, ei)}
-                    onToggle={() => toggleCheck(roundIndex, ei)}
-                    open={expandedExercise === `${roundIndex}_${ei}`}
-                    onOpen={() =>
-                      setExpandedExercise(expandedExercise === `${roundIndex}_${ei}` ? null : `${roundIndex}_${ei}`)
-                    }
-                  />
-                ))}
-                {isRoundDone(roundIndex) && roundIndex < week.rounds - 1 && (
-                  <RestTimer
-                    seconds={week.restRound}
-                    label={`Отдых → круг ${roundIndex + 2}`}
-                    onDone={() => setActiveRound(roundIndex + 1)}
-                  />
-                )}
-              </div>
-            )}
+            </AnimatePresence>
           </div>
         ))}
 
       {!todayDone && (
-        <button
+        <motion.button
+          whileTap={{ scale: 0.97 }}
           onClick={() => setShowRestTimer(!showRestTimer)}
           style={{
             width: "100%",
@@ -130,35 +152,41 @@ export default function WorkoutTab({ week, currentWeek, dayIndex, todayDone, com
           }}
         >
           <Clock size={14} /> Таймер отдыха ({week.restEx}с)
-        </button>
+        </motion.button>
       )}
       {showRestTimer && <RestTimer seconds={week.restEx} label="Отдых между упражнениями" />}
 
-      {allDone && !todayDone && (
-        <button
-          onClick={handleComplete}
-          style={{
-            width: "100%",
-            padding: 16,
-            borderRadius: 12,
-            border: "none",
-            marginTop: 8,
-            background: `linear-gradient(135deg, ${t.green}, #16a34a)`,
-            color: "#fff",
-            fontSize: 15,
-            fontWeight: 700,
-            cursor: "pointer",
-            boxShadow: `0 4px 20px ${t.green}44`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            fontFamily: "inherit",
-          }}
-        >
-          <Trophy size={20} /> ЗАВЕРШЕНА
-        </button>
-      )}
+      <AnimatePresence>
+        {allDone && !todayDone && (
+          <motion.button
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            onClick={handleComplete}
+            style={{
+              width: "100%",
+              padding: 16,
+              borderRadius: 12,
+              border: "none",
+              marginTop: 8,
+              background: `linear-gradient(135deg, ${t.green}, #16a34a)`,
+              color: "#fff",
+              fontSize: 15,
+              fontWeight: 700,
+              cursor: "pointer",
+              boxShadow: `0 4px 20px ${t.green}44`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              fontFamily: "inherit",
+            }}
+          >
+            <Trophy size={20} /> ЗАВЕРШЕНА
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
