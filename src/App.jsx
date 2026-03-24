@@ -109,6 +109,7 @@ export default function App() {
           fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           maxWidth: 480,
           margin: "0 auto",
+          paddingTop: "env(safe-area-inset-top, 0px)",
           paddingBottom: 80,
           position: "relative",
           overflow: "hidden",
