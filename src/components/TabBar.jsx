@@ -22,7 +22,7 @@ export default function TabBar({ activeTab, onTabChange }) {
         width: "100%",
         maxWidth: 480,
         padding: "8px 12px env(safe-area-inset-bottom, 12px)",
-        zIndex: 100,
+        zIndex: 40,
       }}
     >
       <div
