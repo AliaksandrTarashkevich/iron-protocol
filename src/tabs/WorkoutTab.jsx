@@ -32,30 +32,13 @@ export default function WorkoutTab({ week, currentWeek, dayIndex, todayDone, com
   return (
     <div>
       <Card
-        style={{
-          marginBottom: 14,
-          background: `linear-gradient(135deg, ${PHASE_COLORS[week.phase]}12, ${t.accent}08)`,
-          border: `1px solid ${PHASE_COLORS[week.phase]}25`,
-          position: "relative",
-          overflow: "hidden",
-        }}
+        variant="accent"
+        style={{ marginBottom: 14 }}
       >
-        {/* Subtle gradient accent bar */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 3,
-            background: `linear-gradient(90deg, ${PHASE_COLORS[week.phase]}, ${t.accent})`,
-            borderRadius: "14px 14px 0 0",
-          }}
-        />
-        <div style={{ fontSize: 11, color: t.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6, marginTop: 2, fontWeight: 500 }}>
+        <div style={{ fontSize: 12, color: t.accentDark || t.accent, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6, fontWeight: 600 }}>
           Сегодня · Тренировка {dayIndex + 1}/3
         </div>
-        <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.02em" }}>{workout.name}</div>
+        <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em" }}>{workout.name}</div>
         {todayDone && (
           <div style={{ marginTop: 8 }}>
             <Badge color={t.green}><Check size={12} style={{ marginRight: 4 }} /> Выполнено</Badge>
@@ -191,15 +174,15 @@ export default function WorkoutTab({ week, currentWeek, dayIndex, todayDone, com
             style={{
               width: "100%",
               padding: 16,
-              borderRadius: t.buttonRadius || 12,
+              borderRadius: t.buttonRadius,
               border: "none",
               marginTop: 8,
-              background: t.accentGradient ? t.accentGradient.replace(t.accent, t.green) : `linear-gradient(135deg, ${t.green}, #16a34a)`,
-              color: "#fff",
+              background: t.accent,
+              color: t.isDark ? "#111" : "#fff",
               fontSize: 15,
               fontWeight: 700,
               cursor: "pointer",
-              boxShadow: `0 4px 20px ${t.green}44`,
+              boxShadow: `0 4px 20px ${t.accent}44`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

@@ -11,7 +11,7 @@ export default function ExerciseRow({ exercise, done, onToggle, open, onOpen }) 
     <motion.div
       layout
       style={{
-        background: done ? t.greenSoft : t.surface,
+        background: done ? t.greenSoft : (t.surfaceSolid || t.surface),
         border: done ? `1px solid ${t.green}33` : (t.cardBorder || `1px solid ${t.border}`),
         borderRadius: t.exerciseRadius || 12,
         overflow: "hidden",
@@ -73,7 +73,7 @@ export default function ExerciseRow({ exercise, done, onToggle, open, onOpen }) 
             style={{
               fontSize: 14,
               fontWeight: exercise.priority ? 600 : 500,
-              color: done ? t.textMuted : exercise.priority ? t.accent : t.text,
+              color: done ? t.textMuted : exercise.priority ? (t.accentDark || t.accent) : t.text,
               textDecoration: done ? "line-through" : "none",
               opacity: done ? 0.5 : 1,
               display: "flex",
@@ -107,7 +107,7 @@ export default function ExerciseRow({ exercise, done, onToggle, open, onOpen }) 
             style={{
               fontSize: 15,
               fontWeight: 700,
-              color: done ? t.green : t.accent,
+              color: done ? t.green : (t.accentDark || t.accent),
               minWidth: 28,
               textAlign: "right",
               letterSpacing: "-0.02em",

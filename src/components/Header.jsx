@@ -11,50 +11,56 @@ export default function Header({ onOpenSettings, currentWeek, viewingWeek, activ
   const phaseColor = PHASE_COLORS[week.phase];
 
   return (
-    <div style={{ padding: "14px 16px 6px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div style={{ padding: "12px 20px 6px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <div>
         <h1
           style={{
-            fontSize: t.headerSize || 20,
-            fontWeight: 900,
+            fontSize: 22,
+            fontWeight: 800,
             margin: 0,
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: 10,
             letterSpacing: "-0.03em",
           }}
         >
-          <Flame
-            size={22}
+          <div
             style={{
-              color: t.accent,
-              filter: `drop-shadow(0 0 8px ${t.accent}66)`,
+              width: 32,
+              height: 32,
+              borderRadius: 10,
+              background: t.accentSoft,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
-          />
+          >
+            <Flame size={18} color={t.accent} />
+          </div>
           <span>
             IRON<span style={{ color: t.textSubtle, fontWeight: 400 }}>PROTOCOL</span>
           </span>
         </h1>
         <div
           style={{
-            fontSize: 11,
+            fontSize: 12,
             color: t.textMuted,
-            marginTop: 3,
-            marginLeft: 30,
+            marginTop: 4,
+            marginLeft: 42,
             display: "flex",
             alignItems: "center",
-            gap: 6,
+            gap: 8,
           }}
         >
-          <span>Нед. {weekNum + 1}/8</span>
+          <span style={{ fontWeight: 500 }}>Нед. {weekNum + 1}/8</span>
           <span
             style={{
               color: phaseColor,
               fontWeight: 600,
-              padding: "1px 6px",
-              borderRadius: 4,
+              padding: "2px 8px",
+              borderRadius: t.pillRadius,
               background: `${phaseColor}15`,
-              fontSize: 10,
+              fontSize: 11,
             }}
           >
             {week.phase}
@@ -65,23 +71,24 @@ export default function Header({ onOpenSettings, currentWeek, viewingWeek, activ
         </div>
       </div>
       <motion.button
-        whileTap={{ scale: 0.9, rotate: 90 }}
-        transition={{ type: "spring", stiffness: 300 }}
+        whileTap={{ scale: 0.9 }}
         onClick={onOpenSettings}
         style={{
-          background: t.surface2,
-          border: t.cardBorder || `1px solid ${t.border}`,
-          borderRadius: 10,
-          width: 38,
-          height: 38,
+          background: t.surface,
+          border: "none",
+          borderRadius: 12,
+          width: 40,
+          height: 40,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           cursor: "pointer",
           color: t.textMuted,
+          boxShadow: t.shadow,
+          backdropFilter: `blur(${t.cardBlur}px)`,
         }}
       >
-        <Settings size={17} />
+        <Settings size={18} />
       </motion.button>
     </div>
   );

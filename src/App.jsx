@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { THEME, STYLE_META } from "./styles/theme";
+import { THEME } from "./styles/theme";
 import { PLAN } from "./data/plan";
 import { ThemeContext } from "./context/ThemeContext";
 import { useLocalStorage, useLocalStorageString } from "./hooks/useLocalStorage";
@@ -18,20 +18,10 @@ import ProgressTab from "./tabs/ProgressTab";
 const TAB_ORDER = ["workout", "program", "calendar", "weight"];
 
 export default function App() {
-  // Theme: style (minimal|glass|premium) + dark/light
-  const [currentStyle, setCurrentStyle] = useLocalStorageString("wt_style", "glass");
-  const [isDark, setIsDark] = useLocalStorage("wt_dark", true);
-
-  // Resolve theme key
-  const meta = STYLE_META[currentStyle] || STYLE_META.glass;
-  const themeKey = isDark ? meta.darkKey : meta.lightKey;
-  const theme = THEME[themeKey] || THEME["glass-dark"];
-
-  const handleChangeStyle = (style) => {
-    setCurrentStyle(style);
-    if (style === "premium") setIsDark(true);
-  };
-  const handleToggleDarkLight = () => setIsDark(!isDark);
+  // Theme: light or dark
+  const [isDark, setIsDark] = useLocalStorage("wt_dark", false);
+  const theme = THEME[isDark ? "dark" : "light"];
+  const handleToggleMode = () => setIsDark(!isDark);
 
   // Navigation
   const [activeTab, setActiveTab] = useState("workout");
@@ -162,10 +152,8 @@ export default function App() {
         <AnimatePresence>
           {showSettings && (
             <SettingsModal
-              currentStyle={currentStyle}
               isDark={isDark}
-              onChangeStyle={handleChangeStyle}
-              onToggleDarkLight={handleToggleDarkLight}
+              onToggleMode={handleToggleMode}
               onClose={() => setShowSettings(false)}
             />
           )}
