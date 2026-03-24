@@ -1,9 +1,9 @@
-import { Flame, Sun, Moon } from "lucide-react";
+import { Flame, Settings } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { PLAN } from "../data/plan";
 import { PHASE_COLORS } from "../styles/theme";
 
-export default function Header({ mode, onToggleMode, currentWeek, viewingWeek, activeTab }) {
+export default function Header({ onOpenSettings, currentWeek, viewingWeek, activeTab }) {
   const t = useTheme();
   const week = activeTab === "program" ? PLAN[viewingWeek] : PLAN[currentWeek];
   const weekNum = activeTab === "program" ? viewingWeek : currentWeek;
@@ -23,7 +23,7 @@ export default function Header({ mode, onToggleMode, currentWeek, viewingWeek, a
         </div>
       </div>
       <button
-        onClick={onToggleMode}
+        onClick={onOpenSettings}
         style={{
           background: t.surface2,
           border: `1px solid ${t.border}`,
@@ -37,7 +37,7 @@ export default function Header({ mode, onToggleMode, currentWeek, viewingWeek, a
           color: t.text,
         }}
       >
-        {mode === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+        <Settings size={16} />
       </button>
     </div>
   );

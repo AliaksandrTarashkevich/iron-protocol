@@ -7,6 +7,7 @@ import Header from "./components/Header";
 import WeekProgress from "./components/WeekProgress";
 import TabBar from "./components/TabBar";
 import Celebration from "./components/Celebration";
+import SettingsModal from "./components/SettingsModal";
 import WorkoutTab from "./tabs/WorkoutTab";
 import ProgramTab from "./tabs/ProgramTab";
 import CalendarTab from "./tabs/CalendarTab";
@@ -28,6 +29,7 @@ export default function App() {
   // UI state
   const [viewingWeek, setViewingWeek] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Derived values
   const week = PLAN[currentWeek];
@@ -87,10 +89,16 @@ export default function App() {
         }}
       >
         {showCelebration && <Celebration />}
+        {showSettings && (
+          <SettingsModal
+            mode={mode}
+            onToggleMode={handleToggleMode}
+            onClose={() => setShowSettings(false)}
+          />
+        )}
 
         <Header
-          mode={mode}
-          onToggleMode={handleToggleMode}
+          onOpenSettings={() => setShowSettings(true)}
           currentWeek={currentWeek}
           viewingWeek={viewingWeek}
           activeTab={activeTab}
