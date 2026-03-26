@@ -23,7 +23,9 @@ function CountUp({ value, color }) {
 const MONTH_NAMES = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 const DAY_NAMES = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
-export default function CalendarTab({ completedWorkouts, currentWeek }) {
+const NUTRITION_COLORS = { clean: "#4ade80", mixed: "#eab308", junk: "#f87171" };
+
+export default function CalendarTab({ completedWorkouts, currentWeek, weightLog = [] }) {
   const t = useTheme();
   const [monthOffset, setMonthOffset] = useState(0);
 
@@ -34,6 +36,10 @@ export default function CalendarTab({ completedWorkouts, currentWeek }) {
   const firstDayOffset = (new Date(year, month, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const completedDates = Object.values(completedWorkouts).map((c) => c.date);
+
+  // Nutrition lookup by date
+  const nutritionByDate = {};
+  weightLog.forEach((e) => { if (e.nutrition) nutritionByDate[e.date] = e.nutrition; });
 
   return (
     <div>
@@ -72,12 +78,13 @@ export default function CalendarTab({ completedWorkouts, currentWeek }) {
           const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
           const isToday = dateStr === today;
           const hasWorkout = completedDates.includes(dateStr);
+          const nutrition = nutritionByDate[dateStr];
           return (
             <div
               key={day}
               style={{
                 textAlign: "center",
-                padding: "8px 0",
+                padding: "6px 0 4px",
                 borderRadius: 8,
                 fontSize: 12,
                 background: hasWorkout ? t.greenSoft : isToday ? t.surface2 : "transparent",
@@ -87,11 +94,18 @@ export default function CalendarTab({ completedWorkouts, currentWeek }) {
               }}
             >
               {day}
-              {hasWorkout && (
-                <div style={{ display: "flex", justifyContent: "center", marginTop: 1 }}>
-                  <Dumbbell size={7} />
-                </div>
-              )}
+              <div style={{ display: "flex", justifyContent: "center", gap: 2, marginTop: 2, minHeight: 6 }}>
+                {hasWorkout && <Dumbbell size={7} />}
+                {nutrition && (
+                  <span style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: "50%",
+                    background: NUTRITION_COLORS[nutrition],
+                    display: "inline-block",
+                  }} />
+                )}
+              </div>
             </div>
           );
         })}

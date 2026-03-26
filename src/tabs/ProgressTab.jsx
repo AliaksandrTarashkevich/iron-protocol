@@ -7,22 +7,41 @@ import Card from "../components/Card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+const NUTRITION_OPTIONS = [
+  { key: "clean", label: "Норм", emoji: "🥗", color: "#4ade80" },
+  { key: "mixed", label: "Так себе", emoji: "🍕", color: "#eab308" },
+  { key: "junk", label: "Жрал говно", emoji: "🗑️", color: "#f87171" },
+];
+
+function nutritionColor(nutrition) {
+  const opt = NUTRITION_OPTIONS.find((o) => o.key === nutrition);
+  return opt ? opt.color : null;
+}
+
 export default function ProgressTab({ weightLog, onAddWeight, completedWorkouts, endorphinLog = [] }) {
   const t = useTheme();
   const [weightInput, setWeightInput] = useState("");
+  const [nutritionInput, setNutritionInput] = useState(null);
   const [weightSaved, setWeightSaved] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
+
+  const todayWeight = weightLog.find((e) => e.date === today);
+
+  // Pre-populate nutrition from today's existing entry
+  useState(() => {
+    if (todayWeight?.nutrition && !nutritionInput) {
+      setNutritionInput(todayWeight.nutrition);
+    }
+  });
 
   const handleAddWeight = () => {
     const w = parseFloat(weightInput);
     if (!w || w < 30 || w > 300) return;
-    onAddWeight(w);
+    onAddWeight(w, nutritionInput);
     setWeightInput("");
     setWeightSaved(true);
     setTimeout(() => setWeightSaved(false), 2000);
   };
-
-  const todayWeight = weightLog.find((e) => e.date === today);
 
   return (
     <div>
@@ -44,16 +63,50 @@ export default function ProgressTab({ weightLog, onAddWeight, completedWorkouts,
             value={weightInput}
             onChange={(e) => setWeightInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddWeight()}
-            className="flex-1 text-lg font-semibold h-12 rounded-xl"
+            className="flex-1 text-lg font-semibold h-12 rounded-xl text-right pr-4"
+            style={{ direction: "ltr" }}
           />
           <Button
             onClick={handleAddWeight}
             className="h-12 w-12 rounded-xl p-0"
-            style={{ background: t.accent, color: t.isDark ? "#111" : "#fff" }}
+            style={{ background: t.accent, color: "#111" }}
           >
             <Plus size={20} />
           </Button>
         </div>
+
+        {/* Nutrition selector */}
+        <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+          {NUTRITION_OPTIONS.map((opt) => {
+            const isSelected = nutritionInput === opt.key;
+            return (
+              <button
+                key={opt.key}
+                onClick={() => setNutritionInput(isSelected ? null : opt.key)}
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 4,
+                  padding: "8px 4px",
+                  borderRadius: 12,
+                  border: isSelected ? `2px solid ${opt.color}` : `1px solid ${t.border}`,
+                  background: isSelected ? `${opt.color}18` : "transparent",
+                  color: isSelected ? opt.color : t.textMuted,
+                  fontSize: 11,
+                  fontWeight: isSelected ? 700 : 500,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                <span>{opt.emoji}</span>
+                <span>{opt.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
         {weightSaved && (
           <div
             style={{
@@ -76,6 +129,16 @@ export default function ProgressTab({ weightLog, onAddWeight, completedWorkouts,
             <TrendingDown size={16} /> Вес тела
           </div>
           <WeightChart data={weightLog} theme={t} />
+          {weightLog.some((e) => e.nutrition) && (
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 6 }}>
+              {NUTRITION_OPTIONS.map((opt) => (
+                <div key={opt.key} style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 10, color: t.textMuted }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: opt.color }} />
+                  {opt.label}
+                </div>
+              ))}
+            </div>
+          )}
           {weightLog.length >= 2 && <WeightDelta weightLog={weightLog} theme={t} />}
         </Card>
       )}
@@ -93,13 +156,19 @@ export default function ProgressTab({ weightLog, onAddWeight, completedWorkouts,
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
+                  alignItems: "center",
                   padding: "6px 10px",
                   background: i % 2 === 0 ? t.surface : "transparent",
                   borderRadius: 6,
                   fontSize: 12,
                 }}
               >
-                <span style={{ color: t.textMuted }}>{entry.date}</span>
+                <span style={{ display: "flex", alignItems: "center", gap: 6, color: t.textMuted }}>
+                  {entry.nutrition && (
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: nutritionColor(entry.nutrition), display: "inline-block", flexShrink: 0 }} />
+                  )}
+                  {entry.date}
+                </span>
                 <span style={{ fontWeight: 700 }}>{entry.weight} кг</span>
               </div>
             ))}
@@ -144,6 +213,7 @@ function WeightChart({ data, theme: t }) {
     y: PY + (1 - (e.weight - min) / range) * (H - PY * 2),
     w: e.weight,
     d: e.date,
+    n: e.nutrition || null,
   }));
 
   const line = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
@@ -171,23 +241,28 @@ function WeightChart({ data, theme: t }) {
       })}
       <path d={area} fill="url(#wg)" />
       <path d={line} fill="none" stroke={t.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      {points.map((p, i) => (
-        <g key={i}>
-          <circle
-            cx={p.x}
-            cy={p.y}
-            r={i === points.length - 1 ? 4 : 2.5}
-            fill={i === points.length - 1 ? t.accent : t.surface}
-            stroke={t.accent}
-            strokeWidth={i === points.length - 1 ? 2 : 1}
-          />
-          {(i === 0 || i === points.length - 1) && (
-            <text x={p.x} y={p.y - 8} textAnchor="middle" fontSize="8" fontWeight="700" fill={t.text}>
-              {p.w}
-            </text>
-          )}
-        </g>
-      ))}
+      {points.map((p, i) => {
+        const nc = nutritionColor(p.n);
+        const isLast = i === points.length - 1;
+        const dotR = p.n ? (isLast ? 5 : 3.5) : (isLast ? 4 : 2.5);
+        return (
+          <g key={i}>
+            <circle
+              cx={p.x}
+              cy={p.y}
+              r={dotR}
+              fill={nc || (isLast ? t.accent : t.surface)}
+              stroke={nc || t.accent}
+              strokeWidth={isLast ? 2 : 1}
+            />
+            {(i === 0 || isLast) && (
+              <text x={p.x} y={p.y - 8} textAnchor="middle" fontSize="8" fontWeight="700" fill={t.text}>
+                {p.w}
+              </text>
+            )}
+          </g>
+        );
+      })}
       {chartData.length <= 10 &&
         points.map((p, i) => (
           <text key={`d${i}`} x={p.x} y={H - 3} textAnchor="middle" fontSize="6" fill={t.textSubtle}>

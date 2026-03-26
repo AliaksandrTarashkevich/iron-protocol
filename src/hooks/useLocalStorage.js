@@ -19,20 +19,3 @@ export function useLocalStorage(key, initialValue) {
   return [value, setValue];
 }
 
-export function useLocalStorageString(key, initialValue) {
-  const [value, setValue] = useState(() => {
-    try {
-      return localStorage.getItem(key) || initialValue;
-    } catch {
-      return initialValue;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(key, value);
-    } catch {}
-  }, [key, value]);
-
-  return [value, setValue];
-}

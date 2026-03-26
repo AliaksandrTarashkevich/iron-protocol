@@ -1,9 +1,9 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { THEME } from "./styles/theme";
 import { PLAN } from "./data/plan";
 import { ThemeContext } from "./context/ThemeContext";
-import { useLocalStorage, useLocalStorageString } from "./hooks/useLocalStorage";
+import { useLocalStorage } from "./hooks/useLocalStorage";
 import Header from "./components/Header";
 import WeekProgress from "./components/WeekProgress";
 import TabBar from "./components/TabBar";
@@ -18,10 +18,11 @@ import ProgressTab from "./tabs/ProgressTab";
 const TAB_ORDER = ["workout", "program", "calendar", "weight"];
 
 export default function App() {
-  // Theme: light or dark
-  const [isDark, setIsDark] = useLocalStorage("wt_dark", false);
-  const theme = THEME[isDark ? "dark" : "light"];
-  const handleToggleMode = () => setIsDark(!isDark);
+  // Theme: dark only
+  const theme = THEME.dark;
+
+  // Migration: remove old theme key
+  useEffect(() => { localStorage.removeItem("wt_dark"); }, []);
 
   // Navigation
   const [activeTab, setActiveTab] = useState("workout");
@@ -110,9 +111,9 @@ export default function App() {
   }, [handleTabChange]);
 
   const handleAddWeight = useCallback(
-    (weight) => {
+    (weight, nutrition) => {
       setWeightLog((prev) =>
-        [...prev.filter((e) => e.date !== today), { date: today, weight }].sort((a, b) =>
+        [...prev.filter((e) => e.date !== today), { date: today, weight, nutrition: nutrition || null }].sort((a, b) =>
           a.date.localeCompare(b.date),
         ),
       );
@@ -152,8 +153,6 @@ export default function App() {
         <AnimatePresence>
           {showSettings && (
             <SettingsModal
-              isDark={isDark}
-              onToggleMode={handleToggleMode}
               onClose={() => setShowSettings(false)}
             />
           )}
@@ -204,7 +203,7 @@ export default function App() {
               )}
 
               {activeTab === "calendar" && (
-                <CalendarTab completedWorkouts={completedWorkouts} currentWeek={currentWeek} />
+                <CalendarTab completedWorkouts={completedWorkouts} currentWeek={currentWeek} weightLog={weightLog} />
               )}
 
               {activeTab === "weight" && (
